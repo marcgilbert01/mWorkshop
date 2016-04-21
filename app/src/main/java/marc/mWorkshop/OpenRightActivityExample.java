@@ -15,6 +15,10 @@ import android.widget.TextView;
 import marc.customviews.OpenRightView;
 import marc.customviews.OpenRightViewHolder;
 
+
+// TEST NEW REPOSITORY
+
+
 public class OpenRightActivityExample extends AppCompatActivity implements OpenRightFragment.OnFragmentInteractionListener{
 
     OpenRightView openRightView;
