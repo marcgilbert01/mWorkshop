@@ -40,6 +40,8 @@ public class OpenRightView extends FrameLayout implements OpenRightViewHolder.On
     final long durationMoveRight = (long) ((double)animDuration*(1D/3D));
     final long durationFlip = (long) ((double)animDuration*(2D/3D));
 
+    Boolean opened = false;
+
 
     public OpenRightView(Context context, AttributeSet attrs) throws Exception {
         super(context, attrs);
@@ -76,8 +78,20 @@ public class OpenRightView extends FrameLayout implements OpenRightViewHolder.On
     @Override
     public void onOpenRightViewClicked( ViewGroup viewGroup , final int position) {
 
+        opened = true;
         slideItemViewToOutOfRecyclerView(viewGroup, position);
 
+    }
+
+    public void closeFragment() {
+
+        if( opened==true ) {
+            replaceFragmentWithItemView();
+            opened = false;
+        }
+        else{
+            activity.finish();
+        }
     }
 
 
@@ -299,7 +313,6 @@ public class OpenRightView extends FrameLayout implements OpenRightViewHolder.On
                         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
                         fragmentTransaction.remove(openedFragment);
                         fragmentTransaction.commit();
-                        openedFragment = null;
                         frameLayoutFloating.removeAllViews();
                         frameLayoutFloating.addView(openedItemView);
                         // COMPLETE FRAMELAYOUT ROTATION TO SHOW ITEMVIEW
@@ -341,7 +354,7 @@ public class OpenRightView extends FrameLayout implements OpenRightViewHolder.On
     }
 
 
-    public void slideItemViewBackToRecyclerView(){
+    private void slideItemViewBackToRecyclerView(){
 
         // MOVE RECYCLER VIEW BACK TO SCREEN
         ObjectAnimator objectAnimatorRcBackToScreen = ObjectAnimator.ofFloat(recyclerViewOpenRight, "X", -recyclerViewOpenRight.getWidth() , 0F);
@@ -384,18 +397,6 @@ public class OpenRightView extends FrameLayout implements OpenRightViewHolder.On
 
     }
 
-
-
-    public void goBack() {
-
-        if( openedFragment!=null ) {
-            replaceFragmentWithItemView();
-        }
-        else{
-            activity.finish();
-        }
-
-    }
 
     static abstract public class OpenRightAdapter<VH extends OpenRightViewHolder> extends RecyclerView.Adapter{
 
