@@ -299,6 +299,7 @@ public class OpenRightView extends FrameLayout implements OpenRightViewHolder.On
                         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
                         fragmentTransaction.remove(openedFragment);
                         fragmentTransaction.commit();
+                        openedFragment = null;
                         frameLayoutFloating.removeAllViews();
                         frameLayoutFloating.addView(openedItemView);
                         // COMPLETE FRAMELAYOUT ROTATION TO SHOW ITEMVIEW
@@ -385,9 +386,15 @@ public class OpenRightView extends FrameLayout implements OpenRightViewHolder.On
 
 
 
-    public void closeFragment() {
+    public void goBack() {
 
-        replaceFragmentWithItemView();
+        if( openedFragment!=null ) {
+            replaceFragmentWithItemView();
+        }
+        else{
+            activity.finish();
+        }
+
     }
 
     static abstract public class OpenRightAdapter<VH extends OpenRightViewHolder> extends RecyclerView.Adapter{

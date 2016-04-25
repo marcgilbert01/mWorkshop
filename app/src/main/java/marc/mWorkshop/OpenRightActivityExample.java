@@ -55,10 +55,14 @@ public class OpenRightActivityExample extends AppCompatActivity implements OpenR
     @Override
     public void closeFragment() {
 
-        openRightView.closeFragment();
+        openRightView.goBack();
     }
 
+    @Override
+    public void onBackPressed() {
 
+        openRightView.goBack();
+    }
 
 
 
