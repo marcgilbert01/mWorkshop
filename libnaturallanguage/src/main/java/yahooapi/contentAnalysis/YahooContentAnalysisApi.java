@@ -1,16 +1,14 @@
 package yahooapi.contentAnalysis;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
 
-import java.io.BufferedInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -30,25 +28,51 @@ public class YahooContentAnalysisApi {
 
         String[] keywords = null;
 
+        String responseStr = null;
         try {
-            String responseStr = sendQueryToYahoo("select * from contentanalysis.analyze where text='" + text + "'");
-            YahooResponse yahooResponse = new Gson().fromJson(responseStr,YahooResponse.class);
-            if( yahooResponse!=null &&
-                yahooResponse.query!=null &&
-                yahooResponse.query.results!=null &&
-                yahooResponse.query.results.entities!=null &&
-                yahooResponse.query.results.entities.entity!=null
-              ) {
-
-                List<YahooResponse.Entity> entityList = yahooResponse.query.results.entities.entity;
-                keywords = new String[entityList.size()];
-                for (int e = 0; e < entityList.size(); e++) {
-                    keywords[e] = entityList.get(e).text.content;
-                }
-            }
-        } catch (Exception e){
+            responseStr = sendQueryToYahoo("select * from contentanalysis.analyze where text='" + text + "'");
+        } catch (IOException e) {
             e.printStackTrace();
         }
+
+        if( responseStr!=null ) {
+
+            // PARSE JSON ASSUMING WE HAVE AN ARRAY FOR ENTITY  (multiple KEYWORDS)
+            YahooResponseMultipleKeywords yahooResponseMultipleKeywords = null;
+            try {
+                yahooResponseMultipleKeywords = new Gson().fromJson(responseStr, YahooResponseMultipleKeywords.class);
+            }catch( JsonSyntaxException je) { }
+
+            if (yahooResponseMultipleKeywords != null ) {
+                if (yahooResponseMultipleKeywords.query != null &&
+                        yahooResponseMultipleKeywords.query.results != null &&
+                        yahooResponseMultipleKeywords.query.results.entities != null &&
+                        yahooResponseMultipleKeywords.query.results.entities.entity != null) {
+                    List<YahooResponseMultipleKeywords.Entity> entityList = yahooResponseMultipleKeywords.query.results.entities.entity;
+                    keywords = new String[entityList.size()];
+                    for (int e = 0; e < entityList.size(); e++) {
+                        keywords[e] = entityList.get(e).text.content;
+                    }
+                }
+            }
+            // IF PARSED ERROR WE MUST HAVE AN OBJECT FOR ENTITY  (1x KEYWORD)
+            else{
+
+                    YahooResponseSingleKeyword yahooResponseSingleKeyword = null;
+                    try{
+                        yahooResponseSingleKeyword = new Gson().fromJson(responseStr, YahooResponseSingleKeyword.class);
+                    }catch( JsonSyntaxException je) { }
+
+                    if (    yahooResponseSingleKeyword != null &&
+                            yahooResponseSingleKeyword.query != null &&
+                            yahooResponseSingleKeyword.query.results != null &&
+                            yahooResponseSingleKeyword.query.results.entities != null &&
+                            yahooResponseSingleKeyword.query.results.entities.entity != null) {
+
+                        keywords = new String[]{ yahooResponseSingleKeyword.query.results.entities.entity.text.content };
+                    }
+                }
+            }
 
         return keywords;
 
@@ -61,15 +85,15 @@ public class YahooContentAnalysisApi {
 
         try {
             String responseStr = sendQueryToYahoo("select * from contentanalysis.analyze where url='" + url + "'");
-            YahooResponse yahooResponse = new Gson().fromJson(responseStr,YahooResponse.class);
-            if( yahooResponse!=null &&
-                    yahooResponse.query!=null &&
-                    yahooResponse.query.results!=null &&
-                    yahooResponse.query.results.entities!=null &&
-                    yahooResponse.query.results.entities.entity!=null
+            YahooResponseMultipleKeywords yahooResponseMultipleKeywords = new Gson().fromJson(responseStr,YahooResponseMultipleKeywords.class);
+            if( yahooResponseMultipleKeywords !=null &&
+                    yahooResponseMultipleKeywords.query!=null &&
+                    yahooResponseMultipleKeywords.query.results!=null &&
+                    yahooResponseMultipleKeywords.query.results.entities!=null &&
+                    yahooResponseMultipleKeywords.query.results.entities.entity!=null
                     ) {
 
-                List<YahooResponse.Entity> entityList = yahooResponse.query.results.entities.entity;
+                List<YahooResponseMultipleKeywords.Entity> entityList = yahooResponseMultipleKeywords.query.results.entities.entity;
                 keywords = new String[entityList.size()];
                 for (int e = 0; e < entityList.size(); e++) {
                     keywords[e] = entityList.get(e).text.content;
